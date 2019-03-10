@@ -1,47 +1,48 @@
 #!/bin/sh
-# Task 1 
+# Task 1
 
 if [ ! -d $1 ]; then
 	echo "Path given doesn't exist!"
 	exit 7;
 fi
 cd $1
-make > /dev/null 2>&1
-MAKERET=$?
-if [ $MAKERET = 0 ];
+make > log 2>&1
+MakeRet=$?
+if [ $MakeRet = 0 ];
 then
 	if [ ! -e $2 ]; then
 		echo "File given doesn't exist"
 		exit 3;
 fi
 	valgrind --error-exitcode=1 --log-file=/dev/null --leak-check=full -v ./$2
-	MEMRET=$?
-	valgrind --error-exitcode=1 --log-file=/dev/null --tool=helgrind ./$2 
-	RACERET=$?
-	LEAKTEXT=PASS
-	if [ $MEMRET = 1 ]; then
-		LEAKTEXT="FAIL"
+	MemRet=$?
+	valgrind --error-exitcode=1 --log-file=/dev/null --tool=helgrind ./$2
+	RaceRet=$?
+	MemText=PASS
+	if [ $MemRet = 1 ]; then
+		MemText="FAIL"
 	fi
-	RACETEXT=PASS
-	if [ $RACERET = 1 ]; then
-		RACETEXT="FAIL"
+	RaceText=PASS
+	if [ $RaceRet = 1 ]; then
+		RaceText="FAIL"
 	fi
 	echo "Compilation    Memory leaks     Thread race"
-	echo "   PASS           $LEAKTEXT             $RACETEXT"
+	echo "   PASS           $MemText             $RaceText"
 else
 	echo "Compilation    Memory leaks     Thread race"
 	echo "   FAIL         NOT TESTED       NOT TESTED"
-	MAKERET=1
+	MakeRet=1
 	exit 7;
 fi
 
 #calculating return value
+#The result is represented with 3 bits, so the answer ranges 0-7
 
-MAKERET=$(( $MAKERET << 2 ))
-MEMRET=$(( $MEMRET << 1 ))
-RESULT=0
-RESULT=$(( RESULT | MAKERET ))
-RESULT=$(( RESULT | MEMRET ))
-RESULT=$(( RESULT | RACERET ))
-exit $RESULT;
+MakeRet=$(( $MakeRet << 2 )) #The MSB
+MemRet=$(( $MemRet << 1 ))   #The middle bit
+Result=0
+Result=$(( Result | MakeRet ))
+Result=$(( Result | MemRet ))
+Result=$(( Result | RaceRet )) #Race result is LSB, doesn't need to be shifted
+exit $Result;
 
