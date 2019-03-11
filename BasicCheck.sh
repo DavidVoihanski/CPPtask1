@@ -1,22 +1,27 @@
 #!/bin/sh
 # Task 1
 
-if [ ! -d $1 ]; then
+Path=$1
+File=$2
+shift 2
+Args=$@
+
+if [ ! -d $Path ]; then
 	echo "Path given doesn't exist!"
 	exit 7;
 fi
-cd $1
-make > log 2>&1
+cd $Path
+make > /dev/null 2>&1
 MakeRet=$?
 if [ $MakeRet = 0 ];
 then
-	if [ ! -e $2 ]; then
+	if [ ! -e $File ]; then
 		echo "File given doesn't exist"
 		exit 3;
 fi
-	valgrind --error-exitcode=1 --log-file=/dev/null --leak-check=full -v ./$2
+	valgrind --error-exitcode=1 --log-file=/dev/null --leak-check=full -v ./$File $Args
 	MemRet=$?
-	valgrind --error-exitcode=1 --log-file=/dev/null --tool=helgrind ./$2
+	valgrind --error-exitcode=1 --log-file=/dev/null --tool=helgrind ./$File $Args
 	RaceRet=$?
 	MemText=PASS
 	if [ $MemRet = 1 ]; then
