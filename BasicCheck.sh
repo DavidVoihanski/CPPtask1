@@ -18,7 +18,7 @@ then
 	if [ ! -e $File ]; then
 		echo "File given doesn't exist"
 		exit 3;
-fi
+	fi
 	valgrind --error-exitcode=1 --log-file=/dev/null --leak-check=full -v ./$File $Args
 	MemRet=$?
 	valgrind --error-exitcode=1 --log-file=/dev/null --tool=helgrind ./$File $Args
